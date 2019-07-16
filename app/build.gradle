@@ -4,6 +4,8 @@ apply plugin: 'kotlin-android'
 
 apply plugin: 'kotlin-android-extensions'
 
+apply from: "$project.rootDir/config/jacoco.gradle"
+
 android {
     compileSdkVersion 28
     defaultConfig {
@@ -15,10 +17,29 @@ android {
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
     buildTypes {
+        debug {
+            debuggable true
+            multiDexEnabled true
+
+            //add tests coverage using Jacoco
+            testCoverageEnabled true
+        }
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+
+            //add tests coverage using Jacoco
+            testCoverageEnabled false
         }
+    }
+    //Enable the coverage report for unit test
+    testOptions {
+        unitTests.all {
+            jacoco {
+                includeNoLocationClasses = true
+            }
+        }
+        animationsDisabled = false
     }
 }
 

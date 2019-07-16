@@ -1,0 +1,240 @@
+default: &defaults
+  docker:
+  - image: circleci/android:api-28-alpha
+  working_directory: ~/repo
+  environment:
+    TERM: dumb
+    # Customize the JVM maximum heap limit
+    _JAVA_OPTIONS: "-Xmx2048m -XX:+UnlockExperimentalVMOptions -XX:+UseCGroupMemoryLimitForHeap"
+    GRADLE_OPTS: '-Dorg.gradle.jvmargs="-Xmx2048m"'
+    CC_TEST_REPORTER_ID: c1c354a02546580a6aa500011fc95ebb57c9a3d0935bd4b1b703c68b00cb9fc3
+    CODECOV_TOKEN: $CODECOV_TOKEN
+
+gcloud_config: &gcloud_config
+  working_directory: ~/repo
+  docker:
+  - image: google/cloud-sdk:latest
+  environment:
+    TERM: dumb
+
+
+  # Google Services From Firebase (JSON)
+  # Google Services From Firebase (JSON)
+  export_gservices_key: &export_gservices_key
+    run:
+      name: Export Google Services key environment variable
+      command: echo 'export GOOGLE_SERVICES_JSON="$GOOGLE_SERVICES_JSON"' >> $BASH_ENV
+
+  decode_gservices_key: &decode_gservices_key
+    run:
+      name: Decode Google Services JSON key
+      command: |
+        touch app/google-services.json
+        echo $GOOGLE_SERVICES_JSON >> app/google-services.json
+      # Google Cloud Service Account Key
+  export_gcloud_key: &export_gcloud_key
+    run:
+      name: Export Google Cloud Service Account Key Environment Variable
+      command: echo 'export GOOGLE_AUTH="GOOGLE_AUTH"' >> $BASH_ENV
+
+
+## Workspace
+workspace: &workspace
+             ~/repo
+attach_debug_workspace: &attach_debug_workspace
+  attach_workspace:
+    at: *workspace
+
+persist_debug_workspace: &persist_debug_workspace
+  persist_to_workspace:
+    root: *workspace
+    paths:
+    - app/build/intermediates
+    - app/build/outputs/androidTest-results
+    - app/build/outputs/apk
+    - app/build/outputs/code-coverage
+    - app/build/test-results
+
+attach_firebase_workspace: &attach_firebase_workspace
+  attach_workspace:
+    at: *workspace
+
+persist_firebase_workspace: &persist_firebase_workspace
+  persist_to_workspace:
+    root: *workspace
+    paths:
+    - firebase
+
+
+version: 2
+jobs:
+
+
+  # Build debug APK for unit tests and an instrumented test APK
+  build_debug:
+    <<: *defaults
+    steps:
+    - checkout
+    - restore_cache:
+        key: jars-{{ checksum "build.gradle" }}-{{ checksum  "app/build.gradle" }}
+    - run: sdkmanager --install
+    - run: sdkmanager --licenses
+    - run:
+        name: Download Dependencies
+        command: ./gradlew androidDependencies
+    - save_cache:
+        paths:
+        - ~/.gradle
+        key: jars-{{ checksum "build.gradle" }}-{{ checksum  "app/build.gradle" }}
+
+    - run:
+        name: Approve license for build tools
+        command: (echo y; echo y; echo y; echo y; echo y; echo y) | $ANDROID_HOME/tools/bin/sdkmanager --licenses
+
+    - *export_gservices_key
+    - *decode_gservices_key
+
+    # Running build
+    - run:
+        name: Gradle build
+        command: ./gradlew -PciBuild=true :app:assemble :app:assembleAndroidTest
+
+    - *persist_debug_workspace
+
+    - store_artifacts:
+        path: app/build/outputs/apk/
+        destination: /apk/
+
+
+  # Run unit tests
+  test_unit:
+    <<: *defaults
+    steps:
+    - checkout
+    # Download and cache dependencies
+    - restore_cache:
+        keys:
+        - v1-dependencies-{{ checksum "build.gradle" }}
+        # fallback to using the latest cache if no exact match is found
+        - v1-dependencies-
+    - run: ./gradlew androidDependencies
+    - save_cache:
+        paths:
+        - ~/.gradle
+        key: v1-dependencies-{{ checksum "build.gradle" }}
+
+    - *export_gservices_key
+    - *decode_gservices_key
+
+    - run:
+        name: Run unit tests
+        command: ./gradlew -PciBuild=true testDebugUnitTest
+
+    - *persist_debug_workspace
+
+    #Storing unit test reports
+    - store_artifacts:
+        path: app/build/reports
+        destination: /reports/
+    - store_test_results:
+        path: app/build/outputs/test-results
+        destination: /test-results/
+
+
+  # Run instrumented tests
+  test_instrumented:
+    <<: *gcloud_config
+    steps:
+    - checkout
+    - *attach_debug_workspace
+
+    - run:
+        name: Dump Google Cloud Credentials to file
+        command: echo ${GOOGLE_AUTH} > ${HOME}/gcp-key.json
+
+    - run: gcloud auth activate-service-account firebase-adminsdk-cpoyg@top-news-6650f.iam.gserviceaccount.com --key-file ${HOME}/gcp-key.json
+
+    - run: gcloud --quiet config set project ${GOOGLE_PROJECT_ID}
+
+    - run:
+        name: Test with Firebase Test Lab
+        command: gcloud firebase test android run --type instrumentation --app app/build/outputs/apk/debug/app-debug.apk --test app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk --device model=sailfish,version=26,locale=en_US,orientation=portrait --environment-variables=coverage=true,coverageFile=/sdcard/coverage.ec --directories-to-pull /sdcard --timeout 20m
+    - run:
+        name: Create directory to store test results
+        command: mkdir firebase
+    - run:
+        name: Download instrumented test results from Firebase Test Lab
+        command: gsutil -m cp -r -U "`gsutil ls gs://test-lab-cmxk0buqd96k4-mmsxpwdz06sm0 | tail -1`*" ${HOME}/repo/firebase | true
+    - *persist_firebase_workspace
+    - store_artifacts:
+        when: on_success
+        path: firebase/
+        destination: /firebase/
+
+  # Generate and upload JaCoCo coverage report
+  report_coverage:
+    <<: *defaults
+    steps:
+    - checkout
+    - restore_cache:
+        keys:
+        - v1-dependencies-{{ checksum "build.gradle" }}
+        - v1-dependencies-
+    - run: ./gradlew androidDependencies
+
+    - *attach_debug_workspace
+    - *attach_firebase_workspace
+    - run:
+        name: Move Firebase coverage report
+        command: |
+          mkdir -p app/build/outputs/code-coverage/connected
+          cp firebase/sailfish-26-en_US-portrait/artifacts/coverage.ec app/build/outputs/code-coverage/connected/coverage.ec
+    - *export_gservices_key
+    - *decode_gservices_key
+    - run:
+        name: Setup Code Climate test-reporter
+        command: |
+          curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
+          chmod +x ./cc-test-reporter
+    - run:
+        name: Code Climate Pretest
+        command: ./cc-test-reporter before-build
+    - run:
+        name: Generate JaCoCo report
+        command: ./gradlew jacocoTestReport
+
+    - run:
+        name: Upload coverage to codecov
+        command: |
+          export CODECOV_TOKEN=844a250f-3ef1-4935-9f08-8ebfcb917e87
+          bash <(curl -s https://codecov.io/bash)
+    - run:
+        name: Upload coverage to codecov
+        command: bash <(curl -s https://codecov.io/bash) -t 844a250f-3ef1-4935-9f08-8ebfcb917e87
+
+    - run:
+        name: Upload coverage to code climate
+        command: |
+          export JACOCO_SOURCE_PATH=app/src/main/java
+          ./cc-test-reporter format-coverage app/build/reports/jacoco/jacocoTestReport/jacocoTestReport.xml -t jacoco
+          ./cc-test-reporter upload-coverage -r ${CC_TEST_REPORTER_ID}
+    - store_artifacts:
+        path: app/build/reports/
+        destination: /reports/
+
+## Workflows
+workflows:
+  version: 2
+  linting_tests_and_deployment:
+    jobs:
+    - build_debug
+    - test_unit:
+        requires:
+        - build_debug
+    - test_instrumented:
+        requires:
+        - build_debug
+    - report_coverage:
+        requires:
+        - test_unit
+        - test_instrumented

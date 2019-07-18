@@ -1,6 +1,6 @@
 package com.pemwa.topnews.network
 
-import com.pemwa.topnews.domain.Article
+import com.pemwa.topnews.domain.News
 import kotlinx.coroutines.Deferred
 import retrofit2.http.GET
 import retrofit2.http.Query
@@ -11,12 +11,8 @@ import retrofit2.http.Query
 interface NewsApiService {
 
     @GET("everything")
-    fun getEverythingAsync(@Query("q")location: String):
-    // The Coroutine Call Adapter allows us to return a Deferred, a Job with a result
-            Deferred<Article>
+    fun getEverythingAsync(@Query("q")location: String): Deferred<News>
 
     @GET("top-headlines")
-    fun getTopHeadlinesAsync(@Query("country")location: String):
-    // The Coroutine Call Adapter allows us to return a Deferred, a Job with a result
-            Deferred<Article>
+    fun getTopHeadlinesAsync(@Query("q")location: String): Deferred<News>
 }

@@ -24,8 +24,7 @@ data class Article(val source: Source?,
  * Source represent a source object for an article.
  */
 data class  Source(val id: String?,
-                   val name: String?) {
-}
+                   val name: String?)
 
 /**
  * News object that represent a News Item.

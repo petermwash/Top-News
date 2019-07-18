@@ -1,7 +1,8 @@
-package com.pemwa.topnews
+package com.pemwa.topnews.view
 
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import com.pemwa.topnews.R
 
 class NewsActivity : AppCompatActivity() {
 

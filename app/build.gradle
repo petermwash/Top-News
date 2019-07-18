@@ -23,9 +23,6 @@ android {
     }
     buildTypes {
         debug {
-            debuggable true
-            multiDexEnabled true
-
             //add tests coverage using Jacoco
             testCoverageEnabled true
 

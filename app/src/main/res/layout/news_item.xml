@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        xmlns:tools="http://schemas.android.com/tools"
+        android:id="@+id/layout">
+    <data>
+        <variable
+                name="article"
+                type="com.pemwa.topnews.domain.Article"/>
+        <variable
+                name="clickListener"
+                type="com.pemwa.topnews.view.overview.NewsOverviewViewModel"/>
+    </data>
+    <com.google.android.material.card.MaterialCardView
+            style="@style/Widget.MaterialComponents.CardView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/spacing_small"
+            android:layout_marginTop="@dimen/spacing_small"
+            android:layout_marginEnd="@dimen/spacing_small"
+            android:minHeight="120dp">
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                tools:context="com.pemwa.newsapp.overview.NewsOverviewFragment" >
+
+
+            <TextView
+                    android:text="@{article.title}"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/tvTitle"
+                    android:layout_marginTop="@dimen/spacing_small"
+                    android:textAppearance="?attr/textAppearanceHeadline6"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    android:layout_marginStart="@dimen/spacing_normal"
+                    tools:text="What’s this xfinitywifi network and why do I keep connecting? (2016)"
+                    app:layout_constraintEnd_toStartOf="@+id/ivArticleImage" android:fontFamily="@font/lobster_two"
+                    app:layout_constraintHorizontal_chainStyle="spread_inside"/>
+            <ImageView
+                    android:layout_width="92dp"
+                    android:layout_height="0dp"
+                    app:imageUrl="@{article.urlToImage}"
+                    android:id="@+id/ivArticleImage"
+                    android:layout_marginTop="@dimen/spacing_small"
+                    android:layout_marginStart="@dimen/spacing_small"
+                    app:layout_constraintTop_toTopOf="parent"
+                    android:layout_marginBottom="@dimen/spacing_small"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toEndOf="@id/tvTitle"
+                    android:layout_marginEnd="@dimen/spacing_normal"
+                    android:contentDescription="@string/article_image"
+                    tools:src="@drawable/ic_photo_blue_grey_24dp" android:scaleType="centerCrop"/>
+            <TextView
+                    android:text="@{article.author}"
+                    android:textColor="@color/primaryLightColor"
+                    android:textSize="16sp"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/tvAuthor"
+                    android:layout_marginTop="@dimen/spacing_small"
+                    app:layout_constraintTop_toBottomOf="@+id/tvTitle"
+                    android:layout_marginBottom="@dimen/spacing_small"
+                    android:layout_marginStart="@dimen/spacing_normal"
+                    app:layout_constraintBottom_toTopOf="@id/tvDateUpdated"
+                    tools:text="Jimmy Obomsawin"
+                    app:layout_constraintStart_toStartOf="parent"/>
+            <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/tvDateUpdated"
+                    app:datePublished="@{article.publishedAt}"
+                    app:layout_constraintTop_toBottomOf="@+id/tvAuthor"
+                    android:layout_marginBottom="@dimen/spacing_small"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    android:layout_marginStart="@dimen/spacing_normal"
+                    tools:text="7 August 2020"/>
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+    </com.google.android.material.card.MaterialCardView>
+
+</layout>

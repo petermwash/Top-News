@@ -15,16 +15,76 @@
             tools:context=".view.NewsActivity">
 
 
-        <TextView
+        <HorizontalScrollView
+                android:id="@+id/chips"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintHorizontal_bias="0">
+
+            <com.google.android.material.chip.ChipGroup
+                    android:id="@+id/city_choice"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    app:singleSelection="true"
+                    android:padding="@dimen/spacing_normal"/>
+
+        </HorizontalScrollView>
+
+        <com.google.android.material.tabs.TabLayout
+                android:id="@+id/tabLayout"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/spacing_normal"
+                android:layout_marginEnd="@dimen/spacing_normal"
+                android:layout_gravity="top"
+                app:layout_constraintTop_toBottomOf="@+id/chips"
+                app:layout_constraintBottom_toTopOf="@id/news_item_list"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent" >
+
+            <com.google.android.material.tabs.TabItem
+                    android:id="@+id/tabEverything"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" android:text="@string/tab_everything"/>
+            <com.google.android.material.tabs.TabItem
+                    android:id="@+id/tabTopHeadlines"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" android:text="@string/tab_top_headlines"/>
+
+        </com.google.android.material.tabs.TabLayout>
+
+        <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/news_item_list"
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:layout_marginTop="@dimen/spacing_small"
+                android:layout_marginBottom="@dimen/spacing_small"
+                android:layout_marginEnd="@dimen/spacing_small"
+                android:layout_marginStart="@dimen/spacing_small"
+                app:layout_constraintTop_toBottomOf="@+id/tabLayout"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                tools:listitem="@layout/news_item"
+                app:listData="@{viewModel.newsArticleList}"
+                app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager" />
+
+
+        <TextView
+                android:layout_width="0dp"
+                android:layout_height="0dp"
                 app:layout_constraintTop_toTopOf="parent"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
-                android:text="@{viewModel.resultStatus}"
+                android:text="Waiting for Location and Network"
                 android:gravity="center"
-                android:textStyle="bold" tools:text="Status"/>
+                android:textStyle="bold"
+                app:showOnlyWhenEmpty="@{viewModel.newsArticleList}"
+                tools:visibility="gone"/>
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 </layout>

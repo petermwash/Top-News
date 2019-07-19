@@ -2,11 +2,15 @@ package com.pemwa.topnews.view.overview
 
 
 import android.os.Bundle
-import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.fragment.app.Fragment
+import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
+import com.google.android.material.chip.Chip
+import com.google.android.material.snackbar.Snackbar
+import com.pemwa.topnews.R
 import com.pemwa.topnews.databinding.FragmentNewsOverviewBinding
 
 /**
@@ -38,6 +42,42 @@ class NewsOverviewFragment : Fragment() {
 
         // Giving dataBinding access to the NewsOverviewFragment
         binding.viewModel = viewModel
+
+        // Creating and setting the adapter of the RecyclerView
+        val adapter = NewsOverviewAdapter()
+        binding.newsItemList.adapter = adapter
+
+        val tabLayout = binding.tabLayout
+        // Observe the selected tab field
+        viewModel.everythingTabSected.observe(this, Observer { isSelected ->
+            isSelected?.let {
+                viewModel.selectTheCorrectTab(tabLayout)
+            }
+        })
+
+        viewModel.cityList.observe(viewLifecycleOwner, object : Observer<List<String>> {
+            override fun onChanged(data: List<String>?) {
+                data ?: return
+
+                val chipGroup = binding.cityChoice
+                val inflater = LayoutInflater.from(chipGroup.context)
+
+                val children = data.map { cityName ->
+                    val chip = inflater.inflate(R.layout.city, chipGroup, false) as Chip
+                    chip.text = cityName
+                    chip.tag = cityName
+                    chip.setOnCheckedChangeListener { buttonView, isChecked ->
+                        Snackbar.make(binding.root, "Chip has been selected", Snackbar.LENGTH_LONG).show()
+                    }
+                    chip
+                }
+                chipGroup.removeAllViews()
+
+                for (chip in children) {
+                    chipGroup.addView(chip)
+                }
+            }
+        })
 
         return binding.root
     }

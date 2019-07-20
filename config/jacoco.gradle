@@ -55,6 +55,12 @@ task jacocoTestReport(type: JacocoReport, dependsOn: ['testDebugUnitTest']) {
                     '**/event/**/*.*',
                     '**/**_ViewBinding**',
                     '**/*EventType.*',
+                    '**/BR.*',
+                    '**/*Impl.*',
+                    '**/*Binding.*',
+                    '**/*BindingImpl.*',
+                    '**/*MapperImpl.*',
+                    '**/DataBindingInfo.*',
                     '**/**Mocked'
             ]
 

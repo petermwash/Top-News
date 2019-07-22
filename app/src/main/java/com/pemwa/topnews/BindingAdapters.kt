@@ -60,7 +60,7 @@ fun bindImage(imgView: ImageView, imgUrl: String?) {
 }
 
 /**
- * A BindingAdapter to convert a date to [SimpleDateFormat] for display
+ * A BindingAdapter to convert a date to SimpleDateFormat for display
  */
 @BindingAdapter("datePublished")
 fun TextView.setDatePublished(date: String) {

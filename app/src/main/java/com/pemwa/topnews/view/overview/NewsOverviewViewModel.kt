@@ -34,6 +34,11 @@ class NewsOverviewViewModel : ViewModel() {
     val cityList: LiveData<List<String>>
         get() = _cityList
 
+    // Encapsulated LiveData variable for navigating to the selectedArticle detail screen
+    private val _navigateToSelectedArticle = MutableLiveData<Article>()
+    val navigateToSelectedArticle: LiveData<Article>
+        get() = _navigateToSelectedArticle
+
 //    /**
 //     * Creating an instance of the repository.
 //     */
@@ -109,6 +114,21 @@ class NewsOverviewViewModel : ViewModel() {
 
 
         })
+    }
+
+    /**
+     * When a news item is clicked, set the [_navigateToSelectedArticle] [MutableLiveData]
+     * @param article The [Article] that was clicked on.
+     */
+    fun displayArticleDetails(article: Article) {
+        _navigateToSelectedArticle.value = article
+    }
+
+    /**
+     * After the navigation has taken place, [_navigateToSelectedArticle] is set to null
+     */
+    fun displayArticleDetailsComplete() {
+        _navigateToSelectedArticle.value = null
     }
 
     /**

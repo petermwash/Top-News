@@ -8,6 +8,8 @@ apply plugin: 'kotlin-kapt'
 
 apply from: "$project.rootDir/config/jacoco.gradle"
 
+apply plugin: "androidx.navigation.safeargs"
+
 android {
     compileSdkVersion 28
     defaultConfig {
@@ -20,6 +22,9 @@ android {
     }
     dataBinding {
         enabled = true
+    }
+    androidExtensions {
+        experimental = true
     }
     buildTypes {
         debug {
@@ -95,7 +100,8 @@ dependencies {
     implementation "androidx.lifecycle:lifecycle-extensions:$lifecycle_extensions_version"
 
     // Navigation
-    implementation 'android.arch.navigation:navigation-fragment:1.0.0'
+    implementation "android.arch.navigation:navigation-fragment-ktx:$navigation_version"
+    implementation "android.arch.navigation:navigation-ui-ktx:$navigation_version"
 
     // RecyclerView
     implementation "androidx.recyclerview:recyclerview:$recyclerview_version"
@@ -127,6 +133,8 @@ dependencies {
     androidTestImplementation "androidx.test:runner:$test_runner_version"
     androidTestImplementation "androidx.test.ext:junit:$junit_version"
     androidTestImplementation "androidx.test.espresso:espresso-core:$espresso_core_version"
+    androidTestImplementation "androidx.test.espresso:espresso-contrib:$espresso_version"
+    androidTestImplementation "androidx.test.espresso:espresso-intents:$espresso_version"
     androidTestImplementation "androidx.test.ext:truth:$truth_version"
     androidTestImplementation "androidx.fragment:fragment-testing:$fragment_testing_version"
 }

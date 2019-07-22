@@ -4,5 +4,13 @@
             android:id="@+id/navigation_graph" app:startDestination="@id/newsOverviewFragment">
 
     <fragment android:id="@+id/newsOverviewFragment" android:name="com.pemwa.topnews.view.overview.NewsOverviewFragment"
-              android:label="NewsOverviewFragment"/>
+              android:label="NewsOverviewFragment">
+        <action android:id="@+id/action_newsOverviewFragment_to_newsDetailFragment"
+                app:destination="@id/newsDetailFragment" app:popUpTo="@+id/newsOverviewFragment"
+                app:popUpToInclusive="false"/>
+    </fragment>
+    <fragment android:id="@+id/newsDetailFragment" android:name="com.pemwa.topnews.view.detail.NewsDetailFragment"
+              android:label="NewsDetailFragment">
+        <argument android:name="selectedNewsItem" app:argType="com.pemwa.topnews.domain.Article"/>
+    </fragment>
 </navigation>

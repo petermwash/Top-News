@@ -8,7 +8,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.pemwa.topnews.domain.Article
 import com.pemwa.topnews.databinding.NewsItemBinding
 
-class NewsOverviewAdapter : ListAdapter<Article, NewsOverviewAdapter.NewsOverviewViewHolder>(DiffCallback) {
+class NewsOverviewAdapter(private val onItemClickListener: OnItemClickListener) : ListAdapter<Article, NewsOverviewAdapter.NewsOverviewViewHolder>(DiffCallback) {
 
     /**
      * Part of the RecyclerView adapter, called when RecyclerView needs a new [ViewHolder].
@@ -27,7 +27,11 @@ class NewsOverviewAdapter : ListAdapter<Article, NewsOverviewAdapter.NewsOvervie
      * may have been set previously.
      */
     override fun onBindViewHolder(holder: NewsOverviewViewHolder, position: Int) {
-        holder.bind(getItem(position))
+        val article = getItem(position)
+        holder.bind(article)
+        holder.itemView.setOnClickListener {
+            onItemClickListener.onItemClick(article)
+        }
     }
 
     class NewsOverviewViewHolder(private var binding: NewsItemBinding) :
@@ -51,6 +55,10 @@ class NewsOverviewAdapter : ListAdapter<Article, NewsOverviewAdapter.NewsOvervie
 
     }
 
+    /**
+     * Allows the RecyclerView to determine which items have changed when the list of [Article] items
+     * has been updated.
+     */
     companion object DiffCallback: DiffUtil.ItemCallback<Article>() {
         override fun areItemsTheSame(oldItem: Article, newItem: Article): Boolean {
             return oldItem === newItem

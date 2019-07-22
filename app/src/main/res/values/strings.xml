@@ -3,4 +3,9 @@
     <string name="article_image">Image of an article.</string>
     <string name="tab_everything">Everything</string>
     <string name="tab_top_headlines">Top Headlines</string>
+    <string name="detail_image">News Detail Image</string>
+    <string name="read_more">Read More</string>
+    <string name="read_more_button">Read more button</string>
+    <string name="copy_link">Copy link</string>
+    <string name="share">Share</string>
 </resources>

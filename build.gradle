@@ -26,6 +26,8 @@ buildscript {
         mockito_version = '2.23.4'
         truth_version = '1.1.0'
         robolectric_version = '4.1'
+        navigation_version = '1.0.0'
+        espresso_version = '3.2.0'
     }
     repositories {
         google()
@@ -36,8 +38,12 @@ buildscript {
         classpath 'com.android.tools.build:gradle:3.3.2'
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
 
-        // Jacoco
+        // Gradle dependency for Jacoco
         classpath 'com.dicedmelon.gradle:jacoco-android:0.1.4'
+
+        // Gradle dependency for navigation
+        classpath "android.arch.navigation:navigation-safe-args-gradle-plugin:$navigation_version"
+
         // NOTE: Do not place your application dependencies here; they belong
         // in the individual module build.gradle files
     }

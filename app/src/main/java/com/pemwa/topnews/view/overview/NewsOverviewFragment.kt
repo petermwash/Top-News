@@ -8,6 +8,7 @@ import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
+import androidx.navigation.fragment.findNavController
 import com.google.android.material.chip.Chip
 import com.google.android.material.snackbar.Snackbar
 import com.pemwa.topnews.R
@@ -43,15 +44,29 @@ class NewsOverviewFragment : Fragment() {
         // Giving dataBinding access to the NewsOverviewFragment
         binding.viewModel = viewModel
 
-        // Creating and setting the adapter of the RecyclerView
-        val adapter = NewsOverviewAdapter()
-        binding.newsItemList.adapter = adapter
-
         val tabLayout = binding.tabLayout
         // Observe the selected tab field
         viewModel.everythingTabSected.observe(this, Observer { isSelected ->
             isSelected?.let {
                 viewModel.selectTheCorrectTab(tabLayout)
+            }
+        })
+
+        // Setting the adapter in the RecyclerView (the newsItemList.adapter in the binding object)
+        // to the NewsOverviewAdapter
+        binding.newsItemList.adapter = NewsOverviewAdapter(OnItemClickListener {
+            viewModel.displayArticleDetails(it)
+        })
+
+        // Observe the navigateToSelectedArticle LiveData and Navigate when it isn't null
+        // After navigating, call displayArticleDetailsComplete() so that the ViewModel is ready
+        // for another navigation event.
+        viewModel.navigateToSelectedArticle.observe(this, Observer {
+            if ( null != it ) {
+                // Must find the NavController from the Fragment
+                this.findNavController().navigate(NewsOverviewFragmentDirections.actionNewsOverviewFragmentToNewsDetailFragment(it))
+                // Tell the ViewModel we've made the navigate call to prevent multiple navigation
+                viewModel.displayArticleDetailsComplete()
             }
         })
 

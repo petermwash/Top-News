@@ -1,7 +1,9 @@
 package com.pemwa.topnews.network
 
 import com.jakewharton.retrofit2.adapter.kotlin.coroutines.CoroutineCallAdapterFactory
+import com.pemwa.topnews.AppContext
 import com.pemwa.topnews.util.BASE_URL
+import com.pemwa.topnews.util.ConnectivityInterceptor
 import com.pemwa.topnews.util.apiKey
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
@@ -57,6 +59,7 @@ object Network {
     private val okHttpClient = OkHttpClient.Builder()
         .addInterceptor(apiKeyInterceptor)
         .addInterceptor(httpLoggingInterceptor)
+        .addInterceptor(ConnectivityInterceptor(AppContext.applicationContext))
         .connectTimeout(60, TimeUnit.SECONDS)
         .readTimeout(60, TimeUnit.SECONDS)
         .build()

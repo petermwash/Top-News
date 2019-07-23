@@ -6,7 +6,6 @@ import androidx.lifecycle.ViewModel
 import com.google.android.material.tabs.TabLayout
 import com.pemwa.topnews.domain.Article
 import com.pemwa.topnews.network.Network
-import com.pemwa.topnews.repository.ArticlesRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -16,9 +15,14 @@ import timber.log.Timber
 class NewsOverviewViewModel : ViewModel() {
 
     // Obsevabal fied to keep track of the selected tab
-    private val _everythingTabSected =  MutableLiveData<Boolean>()
-    val everythingTabSected : LiveData<Boolean>
-        get() = _everythingTabSected
+    private val _everythingTabSelected = MutableLiveData<Boolean>()
+    val everythingTabSelected: LiveData<Boolean>
+        get() = _everythingTabSelected
+
+    // Observabal field to keep track of the network availability
+    private val _networkConnected = MutableLiveData<Boolean>()
+    val networkConnected: LiveData<Boolean>
+        get() = _networkConnected
 
     /**
      * A list of all news articles that can be shown on the screen.
@@ -49,20 +53,20 @@ class NewsOverviewViewModel : ViewModel() {
     private var viewModelJob = Job()
 
     // the Coroutine runs using the Main (UI) dispatcher
-    private val coroutineScope = CoroutineScope(viewModelJob + Dispatchers.Main )
+    private val coroutineScope = CoroutineScope(viewModelJob + Dispatchers.Main)
 
     /**
      * Call getNewsItems() on init so we can display status immediately.
      */
     init {
         getAllNewsItems()
+        _everythingTabSelected.value = true
         _cityList.value = listOf("Nairobi", "Kampala", "Lagos", "New York", "Kigali")
     }
 
     fun getTopHeadlines() {
-        _everythingTabSected.value = false
         coroutineScope.launch {
-            var getTopHeadlines = Network.news.getTopHeadlinesAsync("us")
+            val getTopHeadlines = Network.news.getTopHeadlinesAsync("us")
             try {
                 // Await the completion of Retrofit request
                 val listResult = getTopHeadlines.await()
@@ -78,7 +82,6 @@ class NewsOverviewViewModel : ViewModel() {
      * News items retrieved.
      */
     fun getAllNewsItems() {
-        _everythingTabSected.value = true
         coroutineScope.launch {
             // Get the Deferred object for our Retrofit request
             val getNewsItemsDeferred = Network.news.getEverythingAsync("us")
@@ -99,8 +102,8 @@ class NewsOverviewViewModel : ViewModel() {
         tabLayout.addOnTabSelectedListener(object : TabLayout.OnTabSelectedListener {
             override fun onTabSelected(tab: TabLayout.Tab?) {
                 when (tab?.position) {
-                    0 -> if (!everythingTabSected.value!!) getAllNewsItems()
-                    1 -> getTopHeadlines()
+                    0 -> _everythingTabSelected.value = true
+                    1 -> _everythingTabSelected.value = false
                 }
             }
 

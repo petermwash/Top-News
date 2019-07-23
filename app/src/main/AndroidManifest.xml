@@ -3,6 +3,7 @@
           package="com.pemwa.topnews">
 
     <!-- In order for our app to access the Internet, we need to define this permission. -->
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
     <uses-permission android:name="android.permission.INTERNET" />
 
     <!-- Enabling the permission for Writing/Reading on SD card. Required for accessing test coverage on FTL -->
@@ -10,6 +11,7 @@
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
 
     <application
+            android:name=".NewsApplication"
             android:allowBackup="true"
             android:icon="@mipmap/ic_launcher"
             android:label="@string/app_name"

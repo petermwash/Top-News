@@ -13,6 +13,7 @@ import com.google.android.material.chip.Chip
 import com.google.android.material.snackbar.Snackbar
 import com.pemwa.topnews.R
 import com.pemwa.topnews.databinding.FragmentNewsOverviewBinding
+import com.pemwa.topnews.view.isNetworkConnected
 
 /**
  * This fragment shows the the status of the News Api web services transaction.
@@ -26,29 +27,38 @@ class NewsOverviewFragment : Fragment() {
         ViewModelProviders.of(this).get(NewsOverviewViewModel::class.java)
     }
 
+    private lateinit var binding: FragmentNewsOverviewBinding
+
     /**
      * Inflates the layout with Data Binding, sets its lifecycle owner to the [NewsOverviewFragment]
      * to enable Data Binding to observe LiveData, and sets up the RecyclerView with an adapter.
      */
-
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
         // Inflate the layout for this fragment
-        val binding = FragmentNewsOverviewBinding.inflate(inflater)
+        binding = FragmentNewsOverviewBinding.inflate(inflater)
 
         // Allowing DataBinding to observe LiveData with the lifecycle of this Fragment
         binding.lifecycleOwner = this
 
         // Giving dataBinding access to the NewsOverviewFragment
         binding.viewModel = viewModel
+        viewModel.selectTheCorrectTab(binding.tabLayout)
 
-        val tabLayout = binding.tabLayout
         // Observe the selected tab field
-        viewModel.everythingTabSected.observe(this, Observer { isSelected ->
-            isSelected?.let {
-                viewModel.selectTheCorrectTab(tabLayout)
+        viewModel.everythingTabSelected.observe(this, Observer { isSelected ->
+            if (isNetworkConnected()) {
+                isSelected?.let {
+                    if (it) {
+                        viewModel.getAllNewsItems()
+                    } else {
+                        viewModel.getTopHeadlines()
+                    }
+                }
+            } else {
+                showNetworkError()
             }
         })
 
@@ -58,13 +68,21 @@ class NewsOverviewFragment : Fragment() {
             viewModel.displayArticleDetails(it)
         })
 
+        // Observe network availability
+        viewModel.networkConnected.observe(this, Observer { isConnected ->
+            if (!isConnected) {
+                showNetworkError()
+            }
+        })
+
         // Observe the navigateToSelectedArticle LiveData and Navigate when it isn't null
         // After navigating, call displayArticleDetailsComplete() so that the ViewModel is ready
         // for another navigation event.
         viewModel.navigateToSelectedArticle.observe(this, Observer {
-            if ( null != it ) {
+            if (null != it) {
                 // Must find the NavController from the Fragment
-                this.findNavController().navigate(NewsOverviewFragmentDirections.actionNewsOverviewFragmentToNewsDetailFragment(it))
+                this.findNavController()
+                    .navigate(NewsOverviewFragmentDirections.actionNewsOverviewFragmentToNewsDetailFragment(it))
                 // Tell the ViewModel we've made the navigate call to prevent multiple navigation
                 viewModel.displayArticleDetailsComplete()
             }
@@ -95,6 +113,10 @@ class NewsOverviewFragment : Fragment() {
         })
 
         return binding.root
+    }
+
+    fun showNetworkError() {
+        Snackbar.make(binding.root, R.string.check_network_connectivity, Snackbar.LENGTH_LONG).show()
     }
 
 

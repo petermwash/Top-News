@@ -1,7 +1,14 @@
 package com.pemwa.topnews
 
 import android.app.Application
+import android.content.ContextWrapper
+import com.pemwa.topnews.util.ConnectivityStatus
 import timber.log.Timber
+
+/**
+ * A variable to store an instance of the application
+ */
+private lateinit var INSTANCE: Application
 
 /**
  * Override application to setup background work via WorkManager
@@ -17,7 +24,25 @@ class NewsApplication : Application() {
     override fun onCreate() {
         super.onCreate()
 
+        //Assigning instance of the application
+        INSTANCE = this
+
+        // Observing the network status
+        ConnectivityStatus().observeForever {
+            isNetworkConnected = it ?: false
+        }
+
+
         // Setting up Timber for logging
         Timber.plant(Timber.DebugTree())
     }
+
+    companion object {
+        var isNetworkConnected = false
+    }
 }
+
+/**
+ * An object from which we cann access the instance of the application
+ */
+object AppContext : ContextWrapper(INSTANCE)

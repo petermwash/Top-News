@@ -1,8 +1,7 @@
 package com.pemwa.topnews
 
-import com.pemwa.topnews.domain.Article
-import com.pemwa.topnews.domain.News
 import com.pemwa.topnews.domain.Source
+import com.pemwa.topnews.util.TestUtils
 import org.junit.Assert.assertEquals
 import org.junit.Test
 
@@ -22,8 +21,8 @@ class NewsUnitTest {
     private val publishedAt = "publishedAt"
     private val content = "content"
 
-    private val article = Article(source,author,title,description,url,urlToImage,publishedAt,content)
-    private val newsObject = News(status,totalResults, listOf(article))
+    private val article = TestUtils.createArticle()
+    private val newsObject = TestUtils.createNewsItem()
 
     @Test
     fun testNewsData() {

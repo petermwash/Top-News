@@ -1,98 +1,114 @@
 package com.pemwa.topnews.view.overview
 
+import android.app.Application
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.google.android.material.tabs.TabLayout
+import com.pemwa.topnews.database.getDatabaseInstance
 import com.pemwa.topnews.domain.Article
 import com.pemwa.topnews.network.Network
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.launch
+import com.pemwa.topnews.repository.ArticlesRepository
+import kotlinx.coroutines.*
 import timber.log.Timber
 
-class NewsOverviewViewModel : ViewModel() {
+class NewsOverviewViewModel(application: Application) : AndroidViewModel(application) {
 
-    // Obsevabal fied to keep track of the selected tab
+    /**
+     * Observable field to keep track of the selected tab
+     */
     private val _everythingTabSelected = MutableLiveData<Boolean>()
     val everythingTabSelected: LiveData<Boolean>
         get() = _everythingTabSelected
 
-    // Observabal field to keep track of the network availability
-    private val _networkConnected = MutableLiveData<Boolean>()
-    val networkConnected: LiveData<Boolean>
-        get() = _networkConnected
+    /**
+     * Observable field to keep track of the selected tab
+     */
+    private val _topHeadlinesTabSelected = MutableLiveData<Boolean>()
+    val topHeadlinesTabSelected: LiveData<Boolean>
+        get() = _topHeadlinesTabSelected
+
+    /**
+     * Observable field to keep track of the tab navigation
+     */
+    private val _tabNavigated = MutableLiveData<Boolean>()
+    val tabNaviagted: LiveData<Boolean>
+        get() = _tabNavigated
 
     /**
      * A list of all news articles that can be shown on the screen.
      */
-    private val _newsArticleList = MutableLiveData<List<Article>>()
+    val newsArticleList = MutableLiveData<List<Article>>()
 
-    // The external immutable LiveData for the newsArticleList String
-    val newsArticleList: LiveData<List<Article>>
-        get() = _newsArticleList
-
-    // The list of city choices
+    /**
+     * The list of city choices
+     */
     private var _cityList = MutableLiveData<List<String>>()
     val cityList: LiveData<List<String>>
         get() = _cityList
 
-    // Encapsulated LiveData variable for navigating to the selectedArticle detail screen
+    /**
+     * Encapsulated LiveData variable for navigating to the selectedArticle detail screen
+     */
     private val _navigateToSelectedArticle = MutableLiveData<Article>()
     val navigateToSelectedArticle: LiveData<Article>
         get() = _navigateToSelectedArticle
 
-//    /**
-//     * Creating an instance of the repository.
-//     */
-//    private val articlesRepository = ArticlesRepository()
+    /**
+     * A database variable to hold the singleton instance of our db
+     */
+    private val database = getDatabaseInstance(application)
+
+    /**
+     * Creating an instance of the repository.
+     */
+    private val articlesRepository = ArticlesRepository(database)
 
 
-    // Creating a Coroutine scope using a job to be able to cancel when needed
-    private var viewModelJob = Job()
+    /**
+     * Creating a Coroutine scope using a job to be able to cancel when needed
+     */
+    private var viewModelJob = SupervisorJob()
 
-    // the Coroutine runs using the Main (UI) dispatcher
+    /**
+     * The Coroutine runs using the Main (UI) dispatcher
+     */
     private val coroutineScope = CoroutineScope(viewModelJob + Dispatchers.Main)
 
     /**
      * Call getNewsItems() on init so we can display status immediately.
      */
     init {
+        coroutineScope.launch {
+            articlesRepository.refreshArticles()
+        }
         getAllNewsItems()
-        _everythingTabSelected.value = true
         _cityList.value = listOf("Nairobi", "Kampala", "Lagos", "New York", "Kigali")
     }
 
+    /**
+     * Creating a list of news articles from the repository
+     */
+    val everything = articlesRepository.articlesEverything
+    val topHeadlines = articlesRepository.articlesTopHeadlines
+
+    /**
+     * Updates the value of the selected tab
+     */
     fun getTopHeadlines() {
-        coroutineScope.launch {
-            val getTopHeadlines = Network.news.getTopHeadlinesAsync("us")
-            try {
-                // Await the completion of Retrofit request
-                val listResult = getTopHeadlines.await()
-                _newsArticleList.value = listResult.articles
-            } catch (e: Exception) {
-                Timber.e("Failure: ${e.message}")
-            }
-        }
+        _tabNavigated.value = true
+        _everythingTabSelected.value = false
+        _topHeadlinesTabSelected.value = true
     }
 
     /**
-     * Sets the value of the newsArticleList LiveData to the NewsApi status or the successful number of
-     * News items retrieved.
+     * Updates the value of the selected tab
      */
     fun getAllNewsItems() {
-        coroutineScope.launch {
-            // Get the Deferred object for our Retrofit request
-            val getNewsItemsDeferred = Network.news.getEverythingAsync("us")
-            try {
-                // Await the completion of our Retrofit request
-                val listResult = getNewsItemsDeferred.await()
-                _newsArticleList.value = listResult.articles
-            } catch (e: Exception) {
-                Timber.e("Failure: ${e.message}")
-            }
-        }
+        _tabNavigated.value = true
+        _topHeadlinesTabSelected.value = false
+        _everythingTabSelected.value = true
     }
 
     /**
@@ -102,8 +118,8 @@ class NewsOverviewViewModel : ViewModel() {
         tabLayout.addOnTabSelectedListener(object : TabLayout.OnTabSelectedListener {
             override fun onTabSelected(tab: TabLayout.Tab?) {
                 when (tab?.position) {
-                    0 -> _everythingTabSelected.value = true
-                    1 -> _everythingTabSelected.value = false
+                    0 -> getAllNewsItems()
+                    1 -> getTopHeadlines()
                 }
             }
 
@@ -132,6 +148,13 @@ class NewsOverviewViewModel : ViewModel() {
      */
     fun displayArticleDetailsComplete() {
         _navigateToSelectedArticle.value = null
+    }
+
+    /**
+     * Complete tab navigation
+     */
+    fun tabNavigatedDone() {
+        _tabNavigated.value = false
     }
 
     /**

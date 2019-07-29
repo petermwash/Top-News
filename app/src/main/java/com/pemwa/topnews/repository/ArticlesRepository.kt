@@ -2,8 +2,14 @@ package com.pemwa.topnews.repository
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.Transformations
+import com.pemwa.topnews.database.ArticlesDatabase
+import com.pemwa.topnews.database.asEverythingDomainModel
+import com.pemwa.topnews.database.asTopHeadlinesDomainModel
 import com.pemwa.topnews.domain.Article
 import com.pemwa.topnews.network.Network
+import com.pemwa.topnews.network.asDatabaseEverytingModel
+import com.pemwa.topnews.network.asDatabaseTopHeadlinesModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
@@ -15,10 +21,24 @@ import kotlinx.coroutines.withContext
  *
  * The repository hides the complexity of managing the interactions between the database and the networking code.
  */
-class ArticlesRepository {
+class ArticlesRepository(private val database: ArticlesDatabase) {
 
     /**
-     * Defining a "refresh" function to refresh the offline cache.
+     * A list of all news articles that can be shown on the screen.
+     */
+    val articlesEverything: LiveData<List<Article>> = Transformations.map(database.articlesDao.getFromEverything()) {
+        it.asEverythingDomainModel()
+    }
+
+    /**
+     * A list of top-headlines news articles that can be shown on the screen.
+     */
+    val articlesTopHeadlines: LiveData<List<Article>> = Transformations.map(database.articlesDao.getFromTopHeadlines()) {
+        it.asTopHeadlinesDomainModel()
+    }
+
+    /**
+     * Defining a "refresh" function to update the offline cache.
      * We make it a "suspend function" since it will be called from a coroutine.
      *
      * This function uses the IO dispatcher to ensure that the insert database operation
@@ -28,11 +48,24 @@ class ArticlesRepository {
      */
     suspend fun refreshArticles() {
 
-        // Run on the IO Dispatcher
+        /**
+         * Run on the IO Dispatcher
+         */
         withContext(Dispatchers.IO) {
 
-            // Making network calls to get articles, and we use the await() function to tell the coroutine
-            // to suspend until the data is available.
+            /**
+             * Making network calls to get articles, and we use the await() function to tell the coroutine
+             * to suspend until the data is available.
+             */
+            val everything = Network.news.getEverythingAsync("us").await()
+            val topHeadlines = Network.news.getTopHeadlinesAsync("us").await()
+
+            /**
+             * Then inserting the articles into the database
+             * The asterisk * is the spread operator. It allows us to pass in an array to a function that expects varargs.
+             */
+            database.articlesDao.insertIntoEverything(*everything.asDatabaseEverytingModel())
+            database.articlesDao.insertIntoTopHeadlines(*topHeadlines.asDatabaseTopHeadlinesModel())
 
         }
     }

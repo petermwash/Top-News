@@ -25,7 +25,7 @@ buildscript {
         fragment_testing_version = '1.1.0-alpha03'
         mockito_version = '2.23.4'
         truth_version = '1.1.0'
-        robolectric_version = '4.1'
+        robolectric_version = '4.2.1'
         navigation_version = '1.0.0'
         espresso_version = '3.2.0'
     }
@@ -35,7 +35,7 @@ buildscript {
         
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:3.3.2'
+        classpath 'com.android.tools.build:gradle:3.4.2'
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
 
         // Gradle dependency for Jacoco

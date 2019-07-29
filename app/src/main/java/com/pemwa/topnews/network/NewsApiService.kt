@@ -11,8 +11,8 @@ import retrofit2.http.Query
 interface NewsApiService {
 
     @GET("everything")
-    fun getEverythingAsync(@Query("q")location: String): Deferred<News>
+    fun getEverythingAsync(@Query("q")location: String): Deferred<NetworkArticleContainer>
 
     @GET("top-headlines")
-    fun getTopHeadlinesAsync(@Query("q")location: String): Deferred<News>
+    fun getTopHeadlinesAsync(@Query("q")location: String): Deferred<NetworkArticleContainer>
 }

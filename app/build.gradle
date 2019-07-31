@@ -47,6 +47,7 @@ android {
     }
     //Enable the coverage report for unit test
     testOptions {
+        unitTests.includeAndroidResources = true
         unitTests.all {
             jacoco {
                 includeNoLocationClasses = true

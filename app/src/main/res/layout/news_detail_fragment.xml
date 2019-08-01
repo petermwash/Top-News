@@ -92,6 +92,7 @@
                     android:text="@string/read_more"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content" android:id="@+id/btReadMore"
+                    android:onClick="@{() -> viewModel.onOpenWebPage()}"
                     style="@style/Widget.MaterialComponents.Button.TextButton.Icon"
                     app:icon="@android:drawable/ic_menu_set_as"
                     tools:text="@string/read_more" android:contentDescription="@string/read_more_button"

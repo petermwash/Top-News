@@ -13,3 +13,9 @@ fun Fragment.isNetworkConnected(): Boolean =
     context?.let {
         NewsApplication.isNetworkConnected
     } ?: false
+
+/**
+ * A Fragment extension function to display an error message on a snackbar
+ */
+fun Fragment.showErrorSnackBar(view: View, message: String) =
+    Snackbar.make(view, message, Snackbar.LENGTH_LONG).show()

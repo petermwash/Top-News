@@ -1,16 +1,17 @@
 package com.pemwa.topnews.view.detail
 
-import android.content.ActivityNotFoundException
-import android.content.Intent
+import android.content.*
 import android.net.Uri
 import android.os.Bundle
 import android.view.*
 import android.widget.Toast
+import androidx.core.content.ContextCompat.getSystemService
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
 import com.pemwa.topnews.R
 import com.pemwa.topnews.databinding.NewsDetailFragmentBinding
+import com.pemwa.topnews.domain.Article
 import com.pemwa.topnews.view.showErrorSnackBar
 import timber.log.Timber
 
@@ -22,6 +23,7 @@ import timber.log.Timber
 class NewsDetailFragment : Fragment() {
 
     private lateinit var binding: NewsDetailFragmentBinding
+    private lateinit var newsArticle: Article
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -32,7 +34,7 @@ class NewsDetailFragment : Fragment() {
         binding = NewsDetailFragmentBinding.inflate(inflater)
 
         // Getting the newsArticle passed from NewsOverviewFragment fro Bundle
-        val newsArticle = NewsDetailFragmentArgs.fromBundle(arguments!!).selectedNewsItem
+        newsArticle = NewsDetailFragmentArgs.fromBundle(arguments!!).selectedNewsItem
 
         // Creating an instance of the associated ViewModel
         val viewModelFactory = NewsDetailViewModelFactory(newsArticle, application)
@@ -60,14 +62,50 @@ class NewsDetailFragment : Fragment() {
         inflater.inflate(R.menu.details_menu, menu)
     }
 
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        when(item.itemId) {
+            R.id.shareArticle -> shareArticle()
+            R.id.copyArticleLink -> copyArticleLink()
+        }
+        return true
+    }
+
+    /**
+     * Method for sharing an article via user's contacts or social media
+     */
+    private fun shareArticle() {
+        try {
+            val message = "Hey, Checkout this awesome article ${newsArticle.url}"
+            val shareIntent = Intent(Intent.ACTION_SEND)
+            shareIntent.type = "text/plain"
+            shareIntent.putExtra(Intent.EXTRA_TEXT, message)
+            startActivity(Intent.createChooser(shareIntent, "Share article via..."))
+
+        } catch (e: ActivityNotFoundException) {
+            showErrorSnackBar(binding.root,
+                getString(R.string.share_intent_error))
+            Timber.e(e)
+        }
+    }
+
+    /**
+     * Method for copying the article url to clipboard
+     */
+    private fun copyArticleLink() {
+        val clipboard = context?.getSystemService(ClipboardManager::class.java)
+        val clipData = ClipData.newRawUri("Article url", Uri.parse(newsArticle.url))
+        clipboard?.primaryClip = clipData
+        Toast.makeText(context, "Article Copied", Toast.LENGTH_SHORT).show()
+    }
+
     /**
      * Launching a news article on a web page
      */
     private fun openOnWebPage(url: String) {
         try {
             val webPage: Uri = Uri.parse(url)
-            val intent = Intent(Intent.ACTION_VIEW, webPage)
-            startActivity(intent)
+            val webIntent = Intent(Intent.ACTION_VIEW, webPage)
+            startActivity(webIntent)
 
         } catch(e: ActivityNotFoundException) {
             showErrorSnackBar(binding.root,

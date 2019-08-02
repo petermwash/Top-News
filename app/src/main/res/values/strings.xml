@@ -12,4 +12,5 @@
     <string name="web_page_error">No application can handle this request. Please install a web browser or check your
         URL.
     </string>
+    <string name="share_intent_error">No application can handle this request!!</string>
 </resources>

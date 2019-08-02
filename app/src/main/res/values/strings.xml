@@ -9,4 +9,7 @@
     <string name="copy_link">Copy link</string>
     <string name="share">Share</string>
     <string name="check_network_connectivity">No internet connection. Ckeck your network connectivity!</string>
+    <string name="web_page_error">No application can handle this request. Please install a web browser or check your
+        URL.
+    </string>
 </resources>

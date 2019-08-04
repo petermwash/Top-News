@@ -80,7 +80,7 @@
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
-                android:text="Waiting for Location and Network"
+                android:text="@string/no_data_available_yet"
                 android:gravity="center"
                 android:textStyle="bold"
                 app:showOnlyWhenEmpty="@{viewModel.newsArticleList}"

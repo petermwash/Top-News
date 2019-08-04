@@ -1,6 +1,5 @@
 package com.pemwa.topnews.network
 
-import com.pemwa.topnews.domain.News
 import kotlinx.coroutines.Deferred
 import retrofit2.http.GET
 import retrofit2.http.Query

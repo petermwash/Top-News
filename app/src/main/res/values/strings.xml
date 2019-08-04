@@ -13,4 +13,5 @@
         URL.
     </string>
     <string name="share_intent_error">No application can handle this request!!</string>
+    <string name="no_data_available_yet">No Data available yet!!</string>
 </resources>

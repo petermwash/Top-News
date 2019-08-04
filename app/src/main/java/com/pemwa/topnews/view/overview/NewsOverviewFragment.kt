@@ -14,6 +14,7 @@ import com.google.android.material.snackbar.Snackbar
 import com.pemwa.topnews.R
 import com.pemwa.topnews.databinding.FragmentNewsOverviewBinding
 import com.pemwa.topnews.domain.Article
+import com.pemwa.topnews.view.isNetworkConnected
 
 /**
  * This fragment shows the the status of the News Api web services transaction.
@@ -45,27 +46,31 @@ class NewsOverviewFragment : Fragment() {
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
         viewModel.everythingTabSelected.observe(this, Observer { isSelected ->
-                isSelected?.let {
-                    if (it) {
-                        viewModel.everything.observe(viewLifecycleOwner, Observer<List<Article>> { everythingArticles ->
+            isSelected?.let {
+                if (it) {
+                    viewModel.everything.observe(
+                        viewLifecycleOwner,
+                        Observer<List<Article>> { everythingArticles ->
                             everythingArticles.apply {
                                 viewModel.newsArticleList.value = everythingArticles
                             }
                         })
-                    }
                 }
+            }
         })
 
         viewModel.topHeadlinesTabSelected.observe(this, Observer { isSelected ->
-                isSelected?.let {
-                    if (it) {
-                        viewModel.topHeadlines.observe(viewLifecycleOwner, Observer<List<Article>> { topHeadlinesArticles ->
+            isSelected?.let {
+                if (it) {
+                    viewModel.topHeadlines.observe(
+                        viewLifecycleOwner,
+                        Observer<List<Article>> { topHeadlinesArticles ->
                             topHeadlinesArticles.apply {
                                 viewModel.newsArticleList.value = topHeadlinesArticles
                             }
                         })
-                    }
                 }
+            }
         })
     }
 
@@ -97,8 +102,8 @@ class NewsOverviewFragment : Fragment() {
         /**
          * Setting the selected tab on the overview screen
          */
-        viewModel.tabNaviagted.observe(this, Observer {
-            if (it){
+        viewModel.tabNavigated.observe(this, Observer {
+            if (it) {
                 viewModel.selectTheCorrectTab(binding.tabLayout)
             }
         })
@@ -122,45 +127,59 @@ class NewsOverviewFragment : Fragment() {
             if (null != it) {
                 // Must find the NavController from the Fragment
                 this.findNavController()
-                    .navigate(NewsOverviewFragmentDirections.actionNewsOverviewFragmentToNewsDetailFragment(it))
+                    .navigate(
+                        NewsOverviewFragmentDirections.actionNewsOverviewFragmentToNewsDetailFragment(
+                            it
+                        )
+                    )
                 // Tell the ViewModel we've made the navigate call to prevent multiple navigation
                 viewModel.displayArticleDetailsComplete()
             }
         })
 
         /**
-         * Observe the [cityList] LiveData and set the cities on the chip
+         * Observe the cityList LiveData and set the cities on the chip
          */
         viewModel.cityList.observe(viewLifecycleOwner, object : Observer<List<String>> {
             override fun onChanged(data: List<String>?) {
                 data ?: return
 
+                // Creating chipGroup and inflator variables.
                 val chipGroup = binding.cityChoice
                 val inflater = LayoutInflater.from(chipGroup.context)
 
+                // Creating a Chip for each regionsList item.
                 val children = data.map { cityName ->
                     val chip = inflater.inflate(R.layout.city, chipGroup, false) as Chip
                     chip.text = cityName
                     chip.tag = cityName
                     chip.setOnCheckedChangeListener { buttonView, isChecked ->
-                        Snackbar.make(binding.root, "Chip has been selected", Snackbar.LENGTH_LONG).show()
+                        if (isNetworkConnected()) {
+                            viewModel.onCityFilterChanged(buttonView.tag as String, isChecked)
+                        } else {
+                            showNetworkError()
+                        }
                     }
                     chip
                 }
+                // Remove views that are already in chipGroup.
                 chipGroup.removeAllViews()
 
+                // Finally, iterate through the list of children to add each chip to chipGroup
                 for (chip in children) {
                     chipGroup.addView(chip)
                 }
             }
         })
 
+        setHasOptionsMenu(true)
         return binding.root
     }
 
-//    private fun showNetworkError() {
-//        Snackbar.make(binding.root, R.string.check_network_connectivity, Snackbar.LENGTH_LONG).show()
-//    }
+    private fun showNetworkError() {
+        Snackbar.make(binding.root, R.string.check_network_connectivity, Snackbar.LENGTH_LONG)
+            .show()
+    }
 
 
 }

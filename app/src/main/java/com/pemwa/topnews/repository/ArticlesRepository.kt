@@ -1,7 +1,6 @@
 package com.pemwa.topnews.repository
 
 import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Transformations
 import com.pemwa.topnews.database.ArticlesDatabase
 import com.pemwa.topnews.database.asEverythingDomainModel
@@ -10,6 +9,7 @@ import com.pemwa.topnews.domain.Article
 import com.pemwa.topnews.network.Network
 import com.pemwa.topnews.network.asDatabaseEverytingModel
 import com.pemwa.topnews.network.asDatabaseTopHeadlinesModel
+import com.pemwa.topnews.util.isNetworkConnected
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
@@ -37,6 +37,15 @@ class ArticlesRepository(private val database: ArticlesDatabase) {
         it.asTopHeadlinesDomainModel()
     }
 
+    var locationFilter: String = ""
+
+    suspend fun getFilters(filter: String) {
+        if (isNetworkConnected()) {
+            locationFilter = filter
+            refreshArticles()
+        }
+    }
+
     /**
      * Defining a "refresh" function to update the offline cache.
      * We make it a "suspend function" since it will be called from a coroutine.
@@ -57,13 +66,15 @@ class ArticlesRepository(private val database: ArticlesDatabase) {
              * Making network calls to get articles, and we use the await() function to tell the coroutine
              * to suspend until the data is available.
              */
-            val everything = Network.news.getEverythingAsync("us").await()
-            val topHeadlines = Network.news.getTopHeadlinesAsync("us").await()
+            val everything = Network.news.getEverythingAsync(locationFilter).await()
+            val topHeadlines = Network.news.getTopHeadlinesAsync(locationFilter).await()
 
             /**
-             * Then inserting the articles into the database
+             * We clear the old data from our tables then insert the new data into the database
              * The asterisk * is the spread operator. It allows us to pass in an array to a function that expects varargs.
              */
+            database.articlesDao.clearEverything()
+            database.articlesDao.clearTopHeadlines()
             database.articlesDao.insertIntoEverything(*everything.asDatabaseEverytingModel())
             database.articlesDao.insertIntoTopHeadlines(*topHeadlines.asDatabaseTopHeadlinesModel())
 

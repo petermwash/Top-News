@@ -60,3 +60,5 @@ class ConnectivityInterceptor(context: Context) : Interceptor {
 }
 
 class NoConnectivityException(message: String) : Throwable(message)
+
+fun isNetworkConnected(): Boolean = isNetworkConnected

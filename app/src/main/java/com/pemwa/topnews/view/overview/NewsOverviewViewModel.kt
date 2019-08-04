@@ -10,6 +10,7 @@ import com.pemwa.topnews.database.getDatabaseInstance
 import com.pemwa.topnews.domain.Article
 import com.pemwa.topnews.network.Network
 import com.pemwa.topnews.repository.ArticlesRepository
+import com.pemwa.topnews.util.isNetworkConnected
 import kotlinx.coroutines.*
 import timber.log.Timber
 
@@ -33,7 +34,7 @@ class NewsOverviewViewModel(application: Application) : AndroidViewModel(applica
      * Observable field to keep track of the tab navigation
      */
     private val _tabNavigated = MutableLiveData<Boolean>()
-    val tabNaviagted: LiveData<Boolean>
+    val tabNavigated: LiveData<Boolean>
         get() = _tabNavigated
 
     /**
@@ -80,11 +81,13 @@ class NewsOverviewViewModel(application: Application) : AndroidViewModel(applica
      * Call getNewsItems() on init so we can display status immediately.
      */
     init {
-        coroutineScope.launch {
-            articlesRepository.refreshArticles()
+        if (isNetworkConnected()){
+            coroutineScope.launch {
+                articlesRepository.refreshArticles()
+            }
         }
         getAllNewsItems()
-        _cityList.value = listOf("Nairobi", "Kampala", "Lagos", "New York", "Kigali")
+        _cityList.value = listOf("New York", "Lagos","Nairobi", "Kampala", "Kigali")
     }
 
     /**
@@ -155,6 +158,22 @@ class NewsOverviewViewModel(application: Application) : AndroidViewModel(applica
      */
     fun tabNavigatedDone() {
         _tabNavigated.value = false
+    }
+
+    /**
+     * Update the  city filter
+     */
+    fun onCityFilterChanged(filter: String, isChecked: Boolean) {
+        if (isChecked) {
+            when(filter) {
+                "New York" -> coroutineScope.launch { articlesRepository.getFilters("United States") }
+                "Lagos" -> coroutineScope.launch { articlesRepository.getFilters("Nigeria") }
+                "Nairobi" -> coroutineScope.launch { articlesRepository.getFilters("Kenya") }
+                "Kampala" -> coroutineScope.launch { articlesRepository.getFilters("Uganda") }
+                "Kigali" -> coroutineScope.launch { articlesRepository.getFilters("Rwanda") }
+            }
+            getAllNewsItems()
+        }
     }
 
     /**

@@ -39,4 +39,18 @@ interface ArticlesDao {
      */
     @Query("SELECT * FROM articles_top_headlines")
     fun getFromTopHeadlines() : LiveData<List<DatabaseTopHeadlines>>
+
+    /**
+     * A mapping function to perform a delete of all entities in our table
+     * so that we may insert fresh data.
+     */
+    @Query("DELETE FROM articles_everything")
+    fun clearEverything()
+
+    /**
+     * A mapping function to perform a delete of all entities in our table
+     * so that we may insert fresh data.
+     */
+    @Query("DELETE FROM articles_top_headlines")
+    fun clearTopHeadlines()
 }

@@ -66,6 +66,10 @@ android {
             kotlin.srcDirs += "src/sharedTest/java"
         }
     }
+    compileOptions {
+        targetCompatibility = 1.8
+        sourceCompatibility = 1.8
+    }
 }
 
 dependencies {
@@ -118,6 +122,9 @@ dependencies {
     implementation 'androidx.legacy:legacy-support-v4:1.0.0'
     kapt "androidx.room:room-compiler:$room_version"
 
+    // WorkManager
+    implementation "androidx.work:work-runtime-ktx:$work_version"
+
     // Testing
     implementation "androidx.test:core:$test_core_version"
     //implementation "androidx.fragment:fragment-testing:$fragment_testing_version"
@@ -138,4 +145,5 @@ dependencies {
     androidTestImplementation "androidx.test.espresso:espresso-intents:$espresso_version"
     androidTestImplementation "androidx.test.ext:truth:$truth_version"
     androidTestImplementation "androidx.fragment:fragment-testing:$fragment_testing_version"
+    androidTestImplementation "androidx.work:work-testing:$work_version"
 }

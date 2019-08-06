@@ -81,23 +81,9 @@ class NewsOverviewFragment : Fragment() {
      * to enable Data Binding to observe LiveData, and sets up the RecyclerView with an adapter.
      */
     override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View? {
-        /**
-         * Inflate the layout for this fragment
-         */
-        binding = FragmentNewsOverviewBinding.inflate(inflater)
-
-        /**
-         * Allowing DataBinding to observe LiveData with the lifecycle of this Fragment
-         */
-        binding.lifecycleOwner = this
-
-        /**
-         * Giving dataBinding access to the NewsOverviewViewModel
-         */
-        binding.viewModel = viewModel
+        inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
+        initBinding(inflater)
+        initAdapter()
 
         /**
          * Setting the selected tab on the overview screen
@@ -105,36 +91,15 @@ class NewsOverviewFragment : Fragment() {
         viewModel.tabNavigated.observe(this, Observer {
             if (it) {
                 viewModel.selectTheCorrectTab(binding.tabLayout)
+                viewModel.tabNavigatedDone()
             }
         })
-
-        /**
-         * Setting the adapter in the RecyclerView (the newsItemList.adapter in the binding object)
-         * to the [newsOverviewAdapter]
-         */
-        newsOverviewAdapter = NewsOverviewAdapter(OnItemClickListener {
-            viewModel.displayArticleDetails(it)
-        })
-        binding.newsItemList.adapter = newsOverviewAdapter
 
         /**
          * Observe the navigateToSelectedArticle LiveData and Navigate when it isn't null
-         *
-         * After navigating, call displayArticleDetailsComplete() so that the ViewModel is ready
-         * for another navigation event.
          */
         viewModel.navigateToSelectedArticle.observe(this, Observer {
-            if (null != it) {
-                // Must find the NavController from the Fragment
-                this.findNavController()
-                    .navigate(
-                        NewsOverviewFragmentDirections.actionNewsOverviewFragmentToNewsDetailFragment(
-                            it
-                        )
-                    )
-                // Tell the ViewModel we've made the navigate call to prevent multiple navigation
-                viewModel.displayArticleDetailsComplete()
-            }
+            launchDetails(it)
         })
 
         /**
@@ -144,38 +109,84 @@ class NewsOverviewFragment : Fragment() {
             override fun onChanged(data: List<String>?) {
                 data ?: return
 
-                // Creating chipGroup and inflator variables.
-                val chipGroup = binding.cityChoice
-                val inflater = LayoutInflater.from(chipGroup.context)
-
-                // Creating a Chip for each regionsList item.
-                val children = data.map { cityName ->
-                    val chip = inflater.inflate(R.layout.city, chipGroup, false) as Chip
-                    chip.text = cityName
-                    chip.tag = cityName
-                    chip.setOnCheckedChangeListener { buttonView, isChecked ->
-                        if (isNetworkConnected()) {
-                            viewModel.onCityFilterChanged(buttonView.tag as String, isChecked)
-                        } else {
-                            showNetworkError()
-                        }
-                    }
-                    chip
-                }
-                // Remove views that are already in chipGroup.
-                chipGroup.removeAllViews()
-
-                // Finally, iterate through the list of children to add each chip to chipGroup
-                for (chip in children) {
-                    chipGroup.addView(chip)
-                }
+                drawChips(data)
             }
         })
-
-        setHasOptionsMenu(true)
         return binding.root
     }
 
+    /**
+     * Inflate the layout for this fragment and
+     * Allowing DataBinding to observe LiveData with the lifecycle of this Fragment
+     */
+    private fun initBinding(inflater: LayoutInflater) {
+        binding = FragmentNewsOverviewBinding.inflate(inflater)
+        binding.lifecycleOwner = this
+        binding.viewModel = viewModel
+    }
+
+    /**
+     * Setting the adapter in the RecyclerView (the newsItemList.adapter in the binding object)
+     * to the [newsOverviewAdapter]
+     */
+    private fun initAdapter() {
+        newsOverviewAdapter = NewsOverviewAdapter(OnItemClickListener {
+            viewModel.displayArticleDetails(it)
+        })
+        binding.newsItemList.adapter = newsOverviewAdapter
+    }
+
+    /**
+     * A method to draw city chips on the screen
+     */
+    private fun drawChips(data: List<String>) {
+        // Creating chipGroup and inflator variables.
+        val chipGroup = binding.cityChoice
+        val inflater = LayoutInflater.from(chipGroup.context)
+
+        // Creating a Chip for each regionsList item.
+        val children = data.map { cityName ->
+            val chip = inflater.inflate(R.layout.city, chipGroup, false) as Chip
+            chip.text = cityName
+            chip.tag = cityName
+            chip.setOnCheckedChangeListener { buttonView, isChecked ->
+                if (isNetworkConnected()) {
+                    viewModel.onCityFilterChanged(buttonView.tag as String, isChecked)
+                } else {
+                    showNetworkError()
+                }
+            }
+            chip
+        }
+        // Remove views that are already in chipGroup.
+        chipGroup.removeAllViews()
+
+        // Finally, iterate through the list of children to add each chip to chipGroup
+        for (chip in children) {
+            chipGroup.addView(chip)
+        }
+    }
+
+    /**
+     * A method to navigate to the Detail view screen
+     */
+    private fun launchDetails(selectedArticle: Article?) {
+        if (null != selectedArticle) {
+            // Must find the NavController from the Fragment
+            this.findNavController()
+                .navigate(
+                    NewsOverviewFragmentDirections.actionNewsOverviewFragmentToNewsDetailFragment(
+                        selectedArticle
+                    )
+                )
+            // Tell the ViewModel we've made the navigate call to prevent multiple navigation
+            viewModel.displayArticleDetailsComplete()
+        }
+    }
+
+    /**
+     * A method to show an internet error on a a snackBar
+     */
     private fun showNetworkError() {
         Snackbar.make(binding.root, R.string.check_network_connectivity, Snackbar.LENGTH_LONG)
             .show()

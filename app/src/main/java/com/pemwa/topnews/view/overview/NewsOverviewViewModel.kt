@@ -1,6 +1,7 @@
 package com.pemwa.topnews.view.overview
 
 import android.app.Application
+import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
@@ -77,6 +78,8 @@ class NewsOverviewViewModel(application: Application) : AndroidViewModel(applica
      */
     private val coroutineScope = CoroutineScope(viewModelJob + Dispatchers.Main)
 
+    var tabPosition: Int? = 0
+
     /**
      * Call getNewsItems() on init so we can display status immediately.
      */
@@ -120,6 +123,7 @@ class NewsOverviewViewModel(application: Application) : AndroidViewModel(applica
     fun selectTheCorrectTab(tabLayout: TabLayout) {
         tabLayout.addOnTabSelectedListener(object : TabLayout.OnTabSelectedListener {
             override fun onTabSelected(tab: TabLayout.Tab?) {
+                tabPosition = tab?.position
                 when (tab?.position) {
                     0 -> getAllNewsItems()
                     1 -> getTopHeadlines()
@@ -172,7 +176,11 @@ class NewsOverviewViewModel(application: Application) : AndroidViewModel(applica
                 "Kampala" -> coroutineScope.launch { articlesRepository.getFilters("Uganda") }
                 "Kigali" -> coroutineScope.launch { articlesRepository.getFilters("Rwanda") }
             }
-            getAllNewsItems()
+            if (tabPosition == 0) {
+                getAllNewsItems()
+            } else {
+                getTopHeadlines()
+            }
         }
     }
 

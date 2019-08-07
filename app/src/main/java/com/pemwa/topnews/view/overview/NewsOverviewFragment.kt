@@ -74,7 +74,7 @@ class NewsOverviewFragment : Fragment() {
         })
     }
 
-    private lateinit var binding: FragmentNewsOverviewBinding
+    lateinit var binding: FragmentNewsOverviewBinding
 
     /**
      * Inflates the layout with Data Binding, sets its lifecycle owner to the [NewsOverviewFragment]
@@ -103,15 +103,10 @@ class NewsOverviewFragment : Fragment() {
         })
 
         /**
-         * Observe the cityList LiveData and set the cities on the chip
+         * Draw the city chips on the screen
          */
-        viewModel.cityList.observe(viewLifecycleOwner, object : Observer<List<String>> {
-            override fun onChanged(data: List<String>?) {
-                data ?: return
+        drawChips(cityData)
 
-                drawChips(data)
-            }
-        })
         return binding.root
     }
 
@@ -135,6 +130,8 @@ class NewsOverviewFragment : Fragment() {
         })
         binding.newsItemList.adapter = newsOverviewAdapter
     }
+
+    private val cityData = listOf("New York", "Lagos","Nairobi", "Kampala", "Kigali")
 
     /**
      * A method to draw city chips on the screen

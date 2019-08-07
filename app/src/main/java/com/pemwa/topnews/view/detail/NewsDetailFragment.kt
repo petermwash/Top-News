@@ -74,18 +74,11 @@ class NewsDetailFragment : Fragment() {
      * Method for sharing an article via user's contacts or social media
      */
     private fun shareArticle() {
-        try {
-            val message = "Hey, Checkout this awesome article ${newsArticle.url}"
-            val shareIntent = Intent(Intent.ACTION_SEND)
-            shareIntent.type = "text/plain"
-            shareIntent.putExtra(Intent.EXTRA_TEXT, message)
-            startActivity(Intent.createChooser(shareIntent, "Share article via..."))
-
-        } catch (e: ActivityNotFoundException) {
-            showErrorSnackBar(binding.root,
-                getString(R.string.share_intent_error))
-            Timber.e(e)
-        }
+        val message = "Hey, Checkout this awesome article ${newsArticle.url}"
+        val shareIntent = Intent(Intent.ACTION_SEND)
+        shareIntent.type = "text/plain"
+        shareIntent.putExtra(Intent.EXTRA_TEXT, message)
+        startActivity(Intent.createChooser(shareIntent, "Share article via..."))
     }
 
     /**
@@ -102,15 +95,8 @@ class NewsDetailFragment : Fragment() {
      * Launching a news article on a web page
      */
     private fun openOnWebPage(url: String) {
-        try {
-            val webPage: Uri = Uri.parse(url)
-            val webIntent = Intent(Intent.ACTION_VIEW, webPage)
-            startActivity(webIntent)
-
-        } catch(e: ActivityNotFoundException) {
-            showErrorSnackBar(binding.root,
-                getString(R.string.web_page_error))
-            Timber.e(e)
-        }
+        val webPage: Uri = Uri.parse(url)
+        val webIntent = Intent(Intent.ACTION_VIEW, webPage)
+        startActivity(webIntent)
     }
 }

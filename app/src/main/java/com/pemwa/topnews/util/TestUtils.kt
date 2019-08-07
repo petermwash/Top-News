@@ -15,9 +15,9 @@ class TestUtils {
         private val author = "author"
         private val title = " title"
         private val description = "description"
-        private val url = "url"
-        private val urlToImage = "urlToImage"
-        private val publishedAt = "publishedAt"
+        private val url = "https://www.google.co.ke"
+        private val urlToImage = "https://www.google.co.ke/images/branding/googlelogo/2x/googlelogo_color_272x92dp.png"
+        private val publishedAt = "2019-08-08T08:00:00Z"
         private val content = "content"
 
         fun createArticle() : Article {

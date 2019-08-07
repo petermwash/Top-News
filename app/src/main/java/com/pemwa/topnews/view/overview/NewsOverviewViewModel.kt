@@ -1,19 +1,18 @@
 package com.pemwa.topnews.view.overview
 
 import android.app.Application
-import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.ViewModel
 import com.google.android.material.tabs.TabLayout
 import com.pemwa.topnews.database.getDatabaseInstance
 import com.pemwa.topnews.domain.Article
-import com.pemwa.topnews.network.Network
 import com.pemwa.topnews.repository.ArticlesRepository
 import com.pemwa.topnews.util.isNetworkConnected
-import kotlinx.coroutines.*
-import timber.log.Timber
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
 
 class NewsOverviewViewModel(application: Application) : AndroidViewModel(application) {
 
@@ -42,13 +41,6 @@ class NewsOverviewViewModel(application: Application) : AndroidViewModel(applica
      * A list of all news articles that can be shown on the screen.
      */
     val newsArticleList = MutableLiveData<List<Article>>()
-
-    /**
-     * The list of city choices
-     */
-    private var _cityList = MutableLiveData<List<String>>()
-    val cityList: LiveData<List<String>>
-        get() = _cityList
 
     /**
      * Encapsulated LiveData variable for navigating to the selectedArticle detail screen
@@ -90,7 +82,6 @@ class NewsOverviewViewModel(application: Application) : AndroidViewModel(applica
             }
         }
         getAllNewsItems()
-        _cityList.value = listOf("New York", "Lagos","Nairobi", "Kampala", "Kigali")
     }
 
     /**
